@@ -18,6 +18,8 @@ class Pagination<T> extends StatefulWidget {
     required this.status,
     required this.data,
     required this.builder,
+    this.loadingWidget,
+    this.loadingMoreWidget,
     this.errorWidget,
     this.errorLoadMoreWidget,
     this.physics,
@@ -31,6 +33,8 @@ class Pagination<T> extends StatefulWidget {
   final void Function(int) onLoadMore;
   final PaginationStatus status;
   final Widget? errorWidget;
+  final Widget? loadingWidget;
+  final Widget? loadingMoreWidget;
   final ErrorLoadMoreWidget? errorLoadMoreWidget;
   final ScrollPhysics? physics;
   final CrossAxisAlignment crossAxisAlignment;
@@ -73,8 +77,8 @@ class _PaginationState<T> extends State<Pagination<T>> {
         widget.status == PaginationStatus.error) return false;
 
     if (scrollInfo is ScrollUpdateNotification) {
-      final remainingScroll = _scrollController.position.maxScrollExtent -
-          scrollInfo.metrics.pixels;
+      final remainingScroll =
+          _scrollController.position.maxScrollExtent - scrollInfo.metrics.pixels;
       if (remainingScroll <= 100) {
         _loadMore();
       }
@@ -96,10 +100,8 @@ class _PaginationState<T> extends State<Pagination<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isFirstPageLoading =
-        widget.status == PaginationStatus.loading && _page == 1;
-    final bool isFirstPageError =
-        widget.status == PaginationStatus.error && _page == 1;
+    final bool isFirstPageLoading = widget.status == PaginationStatus.loading && _page == 1;
+    final bool isFirstPageError = widget.status == PaginationStatus.error && _page == 1;
 
     final size = MediaQuery.sizeOf(context);
 
@@ -113,21 +115,19 @@ class _PaginationState<T> extends State<Pagination<T>> {
           children: [
             if (isFirstPageLoading)
               FadeIn(
-                child: SizedBox(
-                  height: size.height * 0.7,
-                  width: size.width,
-                  child: const Center(
-                    child: CircularProgressIndicator.adaptive(),
-                  ),
-                ),
+                child: widget.loadingWidget ??
+                    SizedBox(
+                      height: size.height * 0.7,
+                      width: size.width,
+                      child: const Center(child: CircularProgressIndicator.adaptive()),
+                    ),
               )
             else if (isFirstPageError)
               FadeIn(
                 child: SizedBox(
                   height: size.height * 0.7,
                   width: size.width,
-                  child: widget.errorWidget ??
-                      const Center(child: Text('Error loading data')),
+                  child: widget.errorWidget ?? const Center(child: Text('Error loading data')),
                 ),
               )
             else if (widget.data.isEmpty)
@@ -135,8 +135,7 @@ class _PaginationState<T> extends State<Pagination<T>> {
                 child: SizedBox(
                   height: size.height * 0.7,
                   width: size.width,
-                  child: widget.emptyWidget ??
-                      const Center(child: Text('No data available')),
+                  child: widget.emptyWidget ?? const Center(child: Text('No data available')),
                 ),
               )
             else
@@ -149,13 +148,12 @@ class _PaginationState<T> extends State<Pagination<T>> {
               ),
             if (widget.status == PaginationStatus.loading && _page > 1)
               FadeIn(
-                child: const SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: 16),
-                    child: Center(
-                      child: CircularProgressIndicator.adaptive(),
-                    ),
-                  ),
+                child: SafeArea(
+                  child: widget.loadingMoreWidget ??
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: Center(child: CircularProgressIndicator.adaptive()),
+                      ),
                 ),
               ),
             if (widget.status == PaginationStatus.error && _page > 1)

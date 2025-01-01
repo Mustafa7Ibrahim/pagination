@@ -19,6 +19,8 @@ class SliverPagination<T> extends StatefulWidget {
     required this.data,
     required this.builder,
     this.errorWidget,
+    this.loadingWidget,
+    this.loadingMoreWidget,
     this.errorLoadMoreWidget,
     this.physics,
     this.emptyWidget,
@@ -30,6 +32,8 @@ class SliverPagination<T> extends StatefulWidget {
   final void Function(int) onLoadMore;
   final PaginationStatus status;
   final Widget? errorWidget;
+  final Widget? loadingWidget;
+  final Widget? loadingMoreWidget;
   final ErrorLoadMoreWidget? errorLoadMoreWidget;
   final ScrollPhysics? physics;
   final Widget? emptyWidget;
@@ -71,8 +75,8 @@ class _SliverPaginationState<T> extends State<SliverPagination<T>> {
         widget.status == PaginationStatus.error) return false;
 
     if (scrollInfo is ScrollUpdateNotification) {
-      final remainingScroll = _scrollController.position.maxScrollExtent -
-          scrollInfo.metrics.pixels;
+      final remainingScroll =
+          _scrollController.position.maxScrollExtent - scrollInfo.metrics.pixels;
       if (remainingScroll <= 100) {
         _loadMore();
       }
@@ -94,10 +98,8 @@ class _SliverPaginationState<T> extends State<SliverPagination<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isFirstPageLoading =
-        widget.status == PaginationStatus.loading && _page == 1;
-    final bool isFirstPageError =
-        widget.status == PaginationStatus.error && _page == 1;
+    final bool isFirstPageLoading = widget.status == PaginationStatus.loading && _page == 1;
+    final bool isFirstPageError = widget.status == PaginationStatus.error && _page == 1;
 
     return NotificationListener<ScrollNotification>(
       onNotification: _onScrollNotification,
@@ -108,23 +110,20 @@ class _SliverPaginationState<T> extends State<SliverPagination<T>> {
           if (isFirstPageLoading)
             SliverFillRemaining(
               child: FadeIn(
-                child: const Center(
-                  child: CircularProgressIndicator.adaptive(),
-                ),
+                child: widget.loadingWidget ??
+                    const Center(child: CircularProgressIndicator.adaptive()),
               ),
             )
           else if (isFirstPageError)
             SliverFillRemaining(
               child: FadeIn(
-                child: widget.errorWidget ??
-                    const Center(child: Text('Error loading data')),
+                child: widget.errorWidget ?? const Center(child: Text('Error loading data')),
               ),
             )
           else if (widget.data.isEmpty)
             SliverFillRemaining(
               child: FadeIn(
-                child: widget.emptyWidget ??
-                    const Center(child: Text('No data available')),
+                child: widget.emptyWidget ?? const Center(child: Text('No data available')),
               ),
             )
           else
@@ -132,13 +131,12 @@ class _SliverPaginationState<T> extends State<SliverPagination<T>> {
           if (widget.status == PaginationStatus.loading && _page > 1)
             SliverToBoxAdapter(
               child: FadeIn(
-                child: const SafeArea(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: CircularProgressIndicator.adaptive(),
-                    ),
-                  ),
+                child: SafeArea(
+                  child: widget.loadingMoreWidget ??
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator.adaptive()),
+                      ),
                 ),
               ),
             ),
