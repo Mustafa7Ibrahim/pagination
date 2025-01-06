@@ -24,7 +24,6 @@ class SliverPagination<T> extends StatefulWidget {
     this.errorLoadMoreWidget,
     this.physics,
     this.emptyWidget,
-    this.controller,
     this.header,
   });
 
@@ -40,7 +39,6 @@ class SliverPagination<T> extends StatefulWidget {
   final ErrorLoadMoreWidget? errorLoadMoreWidget;
   final ScrollPhysics? physics;
   final Widget? emptyWidget;
-  final ScrollController? controller;
   final SliverPaginationBuilder<T> builder;
 
   @override
@@ -48,25 +46,16 @@ class SliverPagination<T> extends StatefulWidget {
 }
 
 class _SliverPaginationState<T> extends State<SliverPagination<T>> {
-  late final ScrollController _scrollController;
   bool _isLoading = false;
   late final int _loadThreshold = widget.itemsPerPage - 3;
 
   int get _page => widget.data.length ~/ widget.itemsPerPage + 1;
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = widget.controller ?? ScrollController();
-  }
-
   void _loadMore() {
     if (_isLoading || widget.hasReachedMax) return;
     _isLoading = true;
     widget.onLoadMore(_page);
-    Future.delayed(const Duration(milliseconds: 250), () {
-      _isLoading = false;
-    });
+    Future.delayed(const Duration(milliseconds: 250), () => _isLoading = false);
   }
 
   void _checkAndLoadDataIfNeeded() {
@@ -85,8 +74,7 @@ class _SliverPaginationState<T> extends State<SliverPagination<T>> {
         widget.status == PaginationStatus.error) return false;
 
     if (scrollInfo is ScrollUpdateNotification) {
-      final remainingScroll =
-          _scrollController.position.maxScrollExtent - scrollInfo.metrics.pixels;
+      final remainingScroll = scrollInfo.metrics.maxScrollExtent - scrollInfo.metrics.pixels;
       if (remainingScroll <= 100) {
         _loadMore();
       }
@@ -101,12 +89,6 @@ class _SliverPaginationState<T> extends State<SliverPagination<T>> {
   }
 
   @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final bool isFirstPageLoading = widget.status == PaginationStatus.loading && _page == 1;
     final bool isFirstPageError = widget.status == PaginationStatus.error && _page == 1;
@@ -114,7 +96,6 @@ class _SliverPaginationState<T> extends State<SliverPagination<T>> {
     return NotificationListener<ScrollNotification>(
       onNotification: _onScrollNotification,
       child: CustomScrollView(
-        controller: _scrollController,
         physics: widget.physics,
         slivers: [
           widget.header ?? const SliverToBoxAdapter(),
