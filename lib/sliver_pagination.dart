@@ -24,6 +24,8 @@ class SliverPagination<T> extends StatefulWidget {
     this.errorLoadMoreWidget,
     this.physics,
     this.emptyWidget,
+    this.controller,
+    this.header,
   });
 
   final bool hasReachedMax;
@@ -31,12 +33,14 @@ class SliverPagination<T> extends StatefulWidget {
   final List<T> data;
   final void Function(int) onLoadMore;
   final PaginationStatus status;
+  final Widget? header;
   final Widget? errorWidget;
   final Widget? loadingWidget;
   final Widget? loadingMoreWidget;
   final ErrorLoadMoreWidget? errorLoadMoreWidget;
   final ScrollPhysics? physics;
   final Widget? emptyWidget;
+  final ScrollController? controller;
   final SliverPaginationBuilder<T> builder;
 
   @override
@@ -44,11 +48,17 @@ class SliverPagination<T> extends StatefulWidget {
 }
 
 class _SliverPaginationState<T> extends State<SliverPagination<T>> {
-  final ScrollController _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   bool _isLoading = false;
   late final int _loadThreshold = widget.itemsPerPage - 3;
 
   int get _page => widget.data.length ~/ widget.itemsPerPage + 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = widget.controller ?? ScrollController();
+  }
 
   void _loadMore() {
     if (_isLoading || widget.hasReachedMax) return;
@@ -107,6 +117,7 @@ class _SliverPaginationState<T> extends State<SliverPagination<T>> {
         controller: _scrollController,
         physics: widget.physics,
         slivers: [
+          widget.header ?? const SliverToBoxAdapter(),
           if (isFirstPageLoading)
             SliverFillRemaining(
               child: FadeIn(
