@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 typedef PaginationBuilder<T> = Widget Function(
   List<T> data,
   ScrollPhysics physics,
-  bool shrinkWrap, [
+  bool shrinkWrap,
   bool isReverse,
-]);
+);
 
 /// builder function type for displaying pagination for a sliver list.
 typedef SliverPaginationBuilder<T> = Widget Function(List<T> data);
