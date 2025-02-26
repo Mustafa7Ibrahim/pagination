@@ -5,6 +5,7 @@ typedef PaginationBuilder<T> = Widget Function(
   List<T> data,
   ScrollPhysics physics,
   bool shrinkWrap,
+  bool isReverse,
 );
 
 /// builder function type for displaying pagination for a sliver list.

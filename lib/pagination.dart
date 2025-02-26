@@ -25,6 +25,7 @@ class Pagination<T> extends StatefulWidget {
     this.physics,
     this.crossAxisAlignment = CrossAxisAlignment.start,
     this.emptyWidget,
+    this.isReverse = false,
   });
 
   final bool hasReachedMax;
@@ -40,6 +41,7 @@ class Pagination<T> extends StatefulWidget {
   final CrossAxisAlignment crossAxisAlignment;
   final Widget? emptyWidget;
   final PaginationBuilder<T> builder;
+  final bool isReverse;
 
   @override
   State<Pagination<T>> createState() => _PaginationState<T>();
@@ -77,8 +79,8 @@ class _PaginationState<T> extends State<Pagination<T>> {
         widget.status == PaginationStatus.error) return false;
 
     if (scrollInfo is ScrollUpdateNotification) {
-      final remainingScroll =
-          _scrollController.position.maxScrollExtent - scrollInfo.metrics.pixels;
+      final remainingScroll = _scrollController.position.maxScrollExtent -
+          scrollInfo.metrics.pixels;
       if (remainingScroll <= 100) {
         _loadMore();
       }
@@ -100,8 +102,10 @@ class _PaginationState<T> extends State<Pagination<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isFirstPageLoading = widget.status == PaginationStatus.loading && _page == 1;
-    final bool isFirstPageError = widget.status == PaginationStatus.error && _page == 1;
+    final bool isFirstPageLoading =
+        widget.status == PaginationStatus.loading && _page == 1;
+    final bool isFirstPageError =
+        widget.status == PaginationStatus.error && _page == 1;
 
     final size = MediaQuery.sizeOf(context);
 
@@ -110,7 +114,10 @@ class _PaginationState<T> extends State<Pagination<T>> {
       child: SingleChildScrollView(
         controller: _scrollController,
         physics: widget.physics,
+        reverse: widget.isReverse,
         child: Column(
+          verticalDirection:
+              widget.isReverse ? VerticalDirection.up : VerticalDirection.down,
           crossAxisAlignment: widget.crossAxisAlignment,
           children: [
             if (isFirstPageLoading)
@@ -119,7 +126,8 @@ class _PaginationState<T> extends State<Pagination<T>> {
                     SizedBox(
                       height: size.height * 0.7,
                       width: size.width,
-                      child: const Center(child: CircularProgressIndicator.adaptive()),
+                      child: const Center(
+                          child: CircularProgressIndicator.adaptive()),
                     ),
               )
             else if (isFirstPageError)
@@ -127,7 +135,8 @@ class _PaginationState<T> extends State<Pagination<T>> {
                 child: SizedBox(
                   height: size.height * 0.7,
                   width: size.width,
-                  child: widget.errorWidget ?? const Center(child: Text('Error loading data')),
+                  child: widget.errorWidget ??
+                      const Center(child: Text('Error loading data')),
                 ),
               )
             else if (widget.data.isEmpty)
@@ -135,7 +144,8 @@ class _PaginationState<T> extends State<Pagination<T>> {
                 child: SizedBox(
                   height: size.height * 0.7,
                   width: size.width,
-                  child: widget.emptyWidget ?? const Center(child: Text('No data available')),
+                  child: widget.emptyWidget ??
+                      const Center(child: Text('No data available')),
                 ),
               )
             else
@@ -144,6 +154,7 @@ class _PaginationState<T> extends State<Pagination<T>> {
                   widget.data,
                   const NeverScrollableScrollPhysics(),
                   true,
+                  widget.isReverse,
                 ),
               ),
             if (widget.status == PaginationStatus.loading && _page > 1)
@@ -152,7 +163,8 @@ class _PaginationState<T> extends State<Pagination<T>> {
                   child: widget.loadingMoreWidget ??
                       const Padding(
                         padding: EdgeInsets.only(bottom: 16),
-                        child: Center(child: CircularProgressIndicator.adaptive()),
+                        child:
+                            Center(child: CircularProgressIndicator.adaptive()),
                       ),
                 ),
               ),
